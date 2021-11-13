@@ -63,3 +63,15 @@ select sum(new_cases) as TotalCases,sum(cast(new_deaths as int)) as TotalDeaths,
 from PortfolioProject..CovidDeaths
 where continent is not null
 order by 1
+
+--Total population vs vaccinations
+select dea.continent,dea.location,dea.date,dea.population,vac.new_vaccinations
+,sum(convert(int,vac.new_vaccinations)) over (partition by dea.location order by dea.location,dea.date)
+as PeopleVaccinated
+from PortfolioProject..CovidDeaths dea
+join PortfolioProject..CovidVaccinations vac
+	on dea.location = vac.location
+	and dea.date = vac.date
+where dea.continent is not null
+--and vac.new_vaccinations is not null
+order by 2,3
