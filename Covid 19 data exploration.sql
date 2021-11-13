@@ -38,5 +38,28 @@ order by MaxPercentagePopulationInfected desc
 select location,max (cast(total_deaths as int)) as MaxMortalityRate
 from PortfolioProject..CovidDeaths
 where continent is not null
-group by location,population
+group by location
 order by 2 desc
+
+--Continents with highest mortality rate per population
+select continent,max(cast(total_deaths as int)) as NoOfMortalityPerContitnent
+from PortfolioProject..CovidDeaths
+where continent is not null
+group by continent
+order by NoOfMortalityPerContitnent desc
+
+
+--Daily death percentage across the world
+select date,sum(total_cases) as TotalCases,sum(cast(total_deaths as int)) as TotalDeaths,
+(sum(cast(total_deaths as int))/sum(total_cases))*100 as DailyWorldDeathPercentage
+from PortfolioProject..CovidDeaths
+where total_cases is not null
+group by date
+order by 1
+
+--Total death percentage across the world
+select sum(new_cases) as TotalCases,sum(cast(new_deaths as int)) as TotalDeaths,
+(sum(cast(new_deaths as int))/sum(new_cases))*100 as WorldDeathPercentage
+from PortfolioProject..CovidDeaths
+where continent is not null
+order by 1
