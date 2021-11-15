@@ -68,6 +68,7 @@ order by 1
 select dea.continent,dea.location,dea.date,dea.population,vac.new_vaccinations
 ,sum(convert(int,vac.new_vaccinations)) over (partition by dea.location order by dea.location,dea.date)
 as PeopleVaccinated
+--, (PeopleVaccinated/population)*100
 from PortfolioProject..CovidDeaths dea
 join PortfolioProject..CovidVaccinations vac
 	on dea.location = vac.location
@@ -75,3 +76,49 @@ join PortfolioProject..CovidVaccinations vac
 where dea.continent is not null
 --and vac.new_vaccinations is not null
 order by 2,3
+
+--Using CTE
+with PopvsVac (continent,location,date,population,new_vaccinations,PeopleVaccinated)
+as
+(
+select dea.continent,dea.location,dea.date,dea.population,vac.new_vaccinations
+,sum(convert(int,vac.new_vaccinations)) over (partition by dea.location order by dea.location,dea.date)
+as PeopleVaccinated
+--, (PeopleVaccinated/population)*100
+from PortfolioProject..CovidDeaths dea
+join PortfolioProject..CovidVaccinations vac
+	on dea.location = vac.location
+	and dea.date = vac.date
+where dea.continent is not null
+--order by 3
+)
+select *,(PeopleVaccinated/population)*100 
+from PopvsVac
+
+--Temp Table
+drop table if exists #PercentPopulationVaccinated
+create table #PercentPopulationVaccinated
+(
+continent nvarchar(255),
+location nvarchar(255),
+Date datetime,
+Population numeric,
+new_vaccinations numeric,
+PeopleVaccinated numeric
+)
+
+insert into #PercentPopulationVaccinated
+select dea.continent,dea.location,dea.date,dea.population,vac.new_vaccinations
+,sum(convert(int,vac.new_vaccinations)) over (partition by dea.location order by dea.location,dea.date)
+as PeopleVaccinated
+--, (PeopleVaccinated/population)*100
+from PortfolioProject..CovidDeaths dea
+join PortfolioProject..CovidVaccinations vac
+	on dea.location = vac.location
+	and dea.date = vac.date
+--where dea.continent is not null
+--order by 3
+select *,(PeopleVaccinated/population)*100 
+from #PercentPopulationVaccinated
+
+--creating view to store data for later visualisation
